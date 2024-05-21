@@ -2,7 +2,7 @@ import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 import todosProps from "@/utils/interface/todos";
 
-const todosApiRoute = "http://localhost:8000/todos";
+const todosApiRoute = "http://localhost:3333/todos";
 
 async function getTodos() {
 	const resp = await fetch(todosApiRoute);
