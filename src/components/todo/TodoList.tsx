@@ -7,6 +7,7 @@ import useTodos from "@/hooks/use-todo";
 import todosProps from "@/utils/interface/todos";
 import Modal from "@/components/modal/Modal";
 import Button from "@/components/button/Button";
+import Input from "../input/Input";
 
 export default function TodoList() {
 	const initialData = {
@@ -29,10 +30,12 @@ export default function TodoList() {
 			return;
 		}
 
-		const id = (todos?.reduce((maxId: number, item: todosProps) => Math.max(item.id, maxId), 0) + 1) || 1;
+		const id: number = (todos?.reduce((maxId: number, item: todosProps) => Math.max(item.id, maxId), 0) + 1) || 1;
 		const userId = Math.floor(Math.random() * 10) + 1;
 		const title = data.title;
 		const completed = false;
+
+		console.log(title);
 
 		try {
 			await addTodos({ id, userId, title, completed }, {
@@ -44,11 +47,11 @@ export default function TodoList() {
 				},
 			});
 			alert("Tarefa adicionada com sucesso!");
-			setData(initialData); // Limpa o campo de entrada após adicionar a tarefa
 			mutate();
 		} catch (error: any) {
 			console.error(error.message);
 		}
+		setData({...data, userId: 1, title: "", completed: false});
 	}
 
 	async function handleDelete(id: number) {
@@ -67,6 +70,10 @@ export default function TodoList() {
 
 	async function handleEdit() {
 		if (taskToEdit) {
+			if (editedTitle.trim() === "") {
+				alert("O título da tarefa não pode estar vazio.");
+				return;
+			}
 			try {
 				await updateTodo({ ...taskToEdit, title: editedTitle }, {
 					optimisticData: {
@@ -134,13 +141,12 @@ export default function TodoList() {
 		<div className="flex flex-col gap-4 border shadow-md rounded-lg p-6">
 			<div className="flex justify-between gap-4">
 				<div className="w-full flex flex-1">
-					<input
-						type="text"
+					<Input
 						id="add-task"
+						type="text"
 						placeholder="Digite o título da tarefa"
 						value={data.title}
 						onChange={(e) => setData({ ...data, title: e.target.value })}
-						className="w-full rounded-xl border-0 p-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-600 focus-visible:outline-none"
 					/>
 				</div>
 				<Button
@@ -157,12 +163,11 @@ export default function TodoList() {
 					todos.toReversed().map((todo: todosProps) => (
 						<li key={todo.id} className="py-4 px-2 flex items-center justify-between gap-2 rounded-lg bg-gray-100">
 							<div className="flex items-center">
-								<input
+								<Input
 									id={`item-todo-${todo.id}`}
 									checked={todo.completed}
 									onChange={() => handleToggleComplete(todo)}
 									type="checkbox"
-									className="h-4 w-4 mr-2 rounded border-gray-300 text-blue-600 focus:ring-blue-600"
 								/>
 								<label
 									htmlFor={`item-todo-${todo.id}`}
@@ -221,12 +226,12 @@ export default function TodoList() {
 				onClose={closeEditModal}
 				onConfirm={confirmEdit}
 			>
-				<input
+				<Input
+					id="edit-task"
 					type="text"
 					value={editedTitle}
 					placeholder="Digite o novo título da tarefa"
 					onChange={(e) => setEditedTitle(e.target.value)}
-					className="w-full rounded-md border-0 p-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-blue-600 focus-visible:outline-none"
 				/>
 			</Modal>
 		</div>

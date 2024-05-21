@@ -35,7 +35,6 @@ async function postTodos(
 	};
 
 	const resp = await fetch(url, {
-		mode: "no-cors",
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
@@ -56,6 +55,9 @@ async function postTodos(
 async function deleteTodos(url: string, { arg }: { arg: { id: number } }) {
 	const resp = await fetch(`${url}/${arg.id}`, {
 		method: "DELETE",
+		headers: {
+			"Content-Type": "application/json",
+		},
 	});
 
 	if (!resp.ok) {
