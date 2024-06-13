@@ -1,20 +1,40 @@
 import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
-import todosProps from "@/utils/interface/todos";
+import todosProps, { todosPropsPost } from "@/utils/interface/todos";
 
-const todosApiRoute = "http://localhost:3333/todos";
+const todosApiRoute = "https://server-7m4zhbfadq-uc.a.run.app/todos";
+const todosApiRouteCount = "https://server-7m4zhbfadq-uc.a.run.app/todos/count";
 
-async function getTodos() {
-	const resp = await fetch(todosApiRoute);
+async function fetcher(url: string) {
+	const resp = await fetch(url, {
+		method: "GET",
+		headers: {
+			"Content-Type": "application/json",
+		},
+	});
 
 	if (!resp.ok) {
 		const error = new Error("Não foi possível buscar as tarefas");
 		throw error;
 	}
 
-	const data = await resp.json();
+	return resp.json();
+}
 
-	return data;
+async function getPageCount() {
+	const resp = await fetch(todosApiRouteCount, {
+		method: "GET",
+		headers: {
+			"Content-Type": "application/json",
+		},
+	});
+
+	if (!resp.ok) {
+		const error = new Error("Não foi possível buscar as tarefas");
+		throw error;
+	}
+
+	return resp.json();
 }
 
 async function postTodos(
@@ -27,7 +47,7 @@ async function postTodos(
 			completed: boolean;
 		}
 	}) {
-	const todosData: todosProps = {
+	const todosData: todosPropsPost = {
 		id: arg.id,
 		userId: arg.userId,
 		title: arg.title,
@@ -42,18 +62,16 @@ async function postTodos(
 		body: JSON.stringify(todosData),
 	});
 
-	console.log(todosData);
-	
 	if (!resp.ok) {
 		const error = new Error("Não foi possível adicionar a tarefa");
 		throw error;
 	}
 
-	return await resp.json();
+	return resp.json();
 }
 
-async function deleteTodos(url: string, { arg }: { arg: { id: number } }) {
-	const resp = await fetch(`${url}/${arg.id}`, {
+async function deleteTodos(url: string, { arg }: { arg: { key: string } }) {
+	const resp = await fetch(`${url}/${arg.key}`, {
 		method: "DELETE",
 		headers: {
 			"Content-Type": "application/json",
@@ -65,29 +83,30 @@ async function deleteTodos(url: string, { arg }: { arg: { id: number } }) {
 		throw error;
 	}
 
-	return await resp.json();
+	return resp;
 }
 
 async function putTodos(
 	url: string,
 	{ arg }: {
 		arg: {
+			key: string;
 			id: number,
 			userId: number;
 			title: string;
 			completed: boolean;
 		}
 	}) {
+
 	const todosData: todosProps = {
+		key: arg.key,
 		id: arg.id,
 		userId: arg.userId,
 		title: arg.title,
 		completed: arg.completed
 	};
 
-	console.log(url, arg.id, todosData);
-
-	const resp = await fetch(`${url}/${arg.id}`, {
+	const resp = await fetch(`${url}/${arg.key}`, {
 		method: "PUT",
 		headers: {
 			"Content-Type": "application/json",
@@ -100,13 +119,13 @@ async function putTodos(
 		throw error;
 	}
 
-	return await resp.json();
+	return resp;
 }
 
-export default function useTodos(shouldFetch: boolean) {
+export default function useTodos(offset?: number, limit?: number) {
 	const { data, mutate, error, isLoading } = useSWR(
-		shouldFetch ? [todosApiRoute] : null,
-		() => getTodos(), {
+		`${todosApiRoute}?offset=${offset}&limit=${limit}`,
+		fetcher, {
 		revalidateIfStale: false,
 		revalidateOnFocus: false,
 		revalidateOnReconnect: false
@@ -124,6 +143,12 @@ export default function useTodos(shouldFetch: boolean) {
 		revalidate: false
 	});
 
+	const { data: pageCount } = useSWR(todosApiRouteCount, getPageCount, {
+		revalidateIfStale: false,
+		revalidateOnFocus: false,
+		revalidateOnReconnect: false
+	});
+
 	if (error) {
 		console.error("Erro ao buscar as tarefas", error);
 	}
@@ -135,6 +160,7 @@ export default function useTodos(shouldFetch: boolean) {
 		removeTodo,
 		updateTodo,
 		error,
-		isLoading
+		isLoading,
+		pageCount
 	};
 }

@@ -6,8 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "server": "json-server --watch data.json --port 3333"
+    "lint": "next lint"
   },
   "dependencies": {
     "@mdi/js": "^7.4.47",

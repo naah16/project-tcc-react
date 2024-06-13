@@ -5,12 +5,14 @@ interface ButtonProps {
   onClick: () => void;
   className?: string;
   color: "primary" | "secondary" | "danger";
-  type: "solid" | "flat" 
+  type: "solid" | "flat";
+  disabled?: boolean;
 }
 
-export default function Button({ children, onClick, className, color, type, ...props }: ButtonProps) {
+export default function Button({ children, onClick, className, color, type, disabled, ...props }: ButtonProps) {
   return (
     <button
+      disabled={disabled}
       className={cn(
         type === "solid" && (
           color === "primary" ? `text-white  bg-blue-600 hover:bg-blue-500` :
